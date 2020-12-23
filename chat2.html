@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Amazon Connect Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="utf-8" http-equiv="encoding">
+    <script src=https://cdn.jsdelivr.net/npm/jquery@3.5/dist/jquery.min.js></script>
+    
+    <link href="css/style.css" rel="stylesheet" type="text/css" />
+    <script src="js/chat2.js"></script>
+    <script src="js/aws-sdk.min-rp.js"></script>
+    
+    <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@0.2/dist/pretty-print-json.css>
+    <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@0.2/dist/pretty-print-json.js></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>    
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    
+<style>
+    #section-api-functions {
+        padding: 10px;
+        max-width: 300px;
+        height: 900px;
+        margin-left: 0px;
+        float: left;
+        overflow: auto;
+    }
+    
+    #section-instance-main {
+        padding: 10px;
+        width: 1000px;
+        height: 900px;
+        margin-left: 0px;
+        float: left;
+        overflow: auto;
+    }
+    
+    #section-instance-main2 {
+        padding: 10px;
+        width: 600px;
+        height: 900px;
+        margin-left: 0px;
+        float: left;
+        overflow: auto;
+    }
+    #section-ac-users {
+        padding: 10px;
+        max-width: 400px;
+        height: 900px;
+        margin-left: 0px;
+        float: left;
+    }
+    
+    #instancesFormatted{
+        white-space: break-spaces;
+        word-break: break-word;
+    }
+    #instancesDivFormatted{
+        overflow: scroll;
+        height: 830px;
+        background-color: #fbf7f7;
+    }       
+    #tblUserList {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    #tblUserList td, #tblUserList th {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    
+    #tblUserList tr:nth-child(even){background-color: #f2f2f2;}
+    
+    #tblUserList tr:hover {background-color: #ddd;}
+    
+    #tblUserList th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      color: black;
+    }
+    
+    #tblJitter {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    #tblJitter td, #tblJitter th {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    
+    #tblJitter tr:nth-child(even){background-color: #f2f2f2;}
+    
+    #tblJitter tr:hover {background-color: #ddd;}
+    
+    #tblJitter th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      color: black;
+    }
+    canvas{
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    
+    .tblUsers {
+      border-collapse: collapse;
+      width: 95%;
+    }
+    
+    .tblUsers td, .tblUsers th {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    
+    .tblUsers tr:nth-child(even){background-color: #f2f2f2;}
+    
+    .tblUsers tr:hover {background-color: #ddd;}
+    
+    .tblUsers th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      color: black;
+    }
+    .tblUsers label{
+        display: inline-block;
+        float: right;
+        height: 1em;
+        line-height: 1em;
+        padding: 6px 0 0;
+        width: 100%; 
+        font-size: 1em;
+        margin: 5px 0;
+        clear: both;
+    }
+    .chatMessages{
+        height: 100%;
+        width: 100%; 
+    }
+	.grey_even {
+	    width: 100%;
+	    background-color: #C0C0C0;
+	    border: 1px solid #a1ade8
+	}
+    .grey_odd {
+        width: 100%;
+        background-color: #ffffff;
+        border: 1px solid #a1ade8
+    }
+	
+	.chatCustomer{
+	    color: rgb(34, 34, 34); 
+	    background: rgb(232, 246, 248);
+	    padding: 0.875rem;
+	    width: calc(100% - 3.4375rem);
+	    border-radius: 5px;
+	    outline: transparent solid 1px;
+	    position: relative;	
+	}
+	.chatAgent{
+	    color: rgb(34, 34, 34);
+	    background: rgb(237, 237, 237);
+	    padding: 0.875rem;
+	    width: calc(100% - 3.4375rem);
+	    border-radius: 5px;
+	    outline: transparent solid 1px;
+	    position: relative;	
+	}  
+	* {
+	    font-family: AmazonEmber, Helvetica, sans-serif;
+	    outline-width: 3px;
+	    outline-color: rgb(102, 102, 102);
+	}	      
+</style>
+<style> 
+ * {box-sizing: border-box;}
+</style>    
+
+</head>
+
+<body>
+
+<!--navbar div with the id-->
+    <section id="section-api-functions">
+        <form>
+         <fieldset>
+            <legend>Amazon Connect Chat Test</legend>
+               <div>
+                  <input type="button" id="awsConfiguration" value="AWS Configurations">
+                  <input type="text" id="txtUserName" value="Alex">
+                  <input type="button" id="btnGetToken" value="Get Token">
+                  <input type="button" id="btnGetTokenOld" value="Get Token Old">
+                  <input type="text" id="txtWSURL" value="">
+                  <input type="button" id="btnConnect" value="Connect">
+                  <input type="button" id="btnDisConnect" value="Disconnect">
+                  <input type="text" id="txtMessage" value="">
+                  <input type="button" id="btnSendMessage" value="Send message">
+                  <input type="button" id="btnGetTranscripts" value="Get Transcripts">
+                  <input type="button" id="btnSendEvent" value="Send event">
+                  <input type="button" id="btnStopContact" value="Stop Contact">
+                  <input type="button" id="btnStartAttachmentUpload" value="Upload start">
+                  <input type="button" id="btnCompleteAttachmentUpload" value="Upload complete">
+                  <input type="button" id="btnUploadFile" value="Upload file">
+                  <input type="file" id="fileUpload">    
+                  <progress max=”100” value=”0”></progress>
+                  <input type="button" id="btnGetAttachment" value="Get attachment">   
+               </div>
+               <div>        
+               </div>
+         </fieldset>
+         </form>
+         
+    </section>
+
+
+    <section id="section-instance-main">
+        <legend>Chat details <br>
+            Token : <input type="text" id="txtOldToken" value="">
+            Credentials : <input type="text" id="txtOldCredentials" value="">
+            Attachments : <input type="text" id="txtAttachmentDetails" value="">
+        </legend>
+        
+        <div style="height: 90%;  overflow: scroll;">
+            <div id="wsMessages" class='chatMessages'></div>
+        </div>
+    </section>
+    
+    <section id="section-instance-main2">
+        <legend>Chat details <br></legend>
+        <div style="height: 90%;  overflow: scroll;">
+            <div id="chatMessages" class='chatMessages'></div>
+        </div>
+    </section>
+    
+    <div id="dialog" title="Waiting">
+      <span id='spnDlgWaiting'>Waiting for server to respond</span>
+    </div>
+    
+    <div id="resultDialog" title="API Result">
+        <span id="resultSpan"></span>
+    </div>
+
+    
+
+    <!-- Beginning of AWS Configurations -->
+    <div id="configDialog" title="AWS IAM Credentials">
+         <form  name="AWSIAMInfo" id="AWSIAMInfo" autocomplete="on">
+              <fieldset class="config-info">
+                   <legend>Enter AWS credentials for User Hierarchy Management</legend>
+                      <div>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <label for="dlgSourceAccessKey">Access Key : </label>
+                            </td>
+                            <td>
+                              <input name="dlgSourceAccessKey" type="text" id="dlgSourceAccessKey" placeholder="Access Key">
+                            </td>
+                            <td>
+                                <label for="dlgSourceRegion">Region : </label>
+                            </td>
+                            <td>
+                              <input name="dlgSourceRegion" type="text" id="dlgSourceRegion" placeholder="Region">
+                            </td>
+                            </tr>
+                            <tr>
+                            <td>
+                              <label for="dlgSourceSecretKey">Secret Key : </label>
+                            </td>
+                            <td colspan=3>
+                              <input name="dlgSourceSecretKey" type="text" id="dlgSourceSecretKey" placeholder="Secret Key" style="width:100%;">
+                            </td>
+                            
+                            </tr>
+                            <tr>
+                            <td>
+                              <label for="dlgInstanceId">Instance Id : </label>
+                            </td>
+                            <td colspan=3>
+                              <input name="dlgInstanceId" type="text" id="dlgInstanceId" placeholder="Instance Id" style="width:100%;">
+                            </td>
+                            </tr>
+                            <tr>
+                            <td>
+                              <label for="dlgContactFlowId">Contact Flow Id : </label>
+                            </td>
+                            <td colspan=3>
+                              <input name="dlgContactFlowId" type="text" id="dlgContactFlowId" placeholder="ContactFlow Id" style="width:100%;">
+                            </td>
+                            </tr>
+                            
+                          </tbody>
+                        </table>
+                   </div>
+              </fieldset>
+              <span id="spnAWSMessage" style="color: red;font-weight: bold;float:left"></span><button class="btn" type="button" id="btnConfiguration" style="width: 200px;float:right"> Save Configurations </button>
+           </form>
+     </div>
+     <!-- End of AWS Config -->
+    
+</body>
+</html>
